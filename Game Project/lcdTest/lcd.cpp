@@ -1,52 +1,37 @@
-#include "mbed.h"
-#include "DisplayBace.h"
-#include "rtos.h"
-#include "RGA.h"
-#include "BinaryImage_RZ_A1H.h"
-#include "LCD_shield_config_4_3inch.h"
+#include "lcd.h"
 
-
-#define GRAPHICS_FORMAT                     (DisplayBase::GRAPHICS_FORMAT_RGB565)
-#define WR_RD_WRSWA                         (DisplayBase::WR_RD_WRSWA_32_16BIT)
-
-/* FRAME BUFFER Parameter */
-#define FRAME_BUFFER_BYTE_PER_PIXEL         (2)
-#define FRAME_BUFFER_STRIDE                 (((LCD_PIXEL_WIDTH * FRAME_BUFFER_BYTE_PER_PIXEL) + 31u) & ~31u)
-
-#define MAX_JPEG_SIZE                       (1024 * 450)
-
- InterruptIn button(USER_BUTTON0);
- Serial pc(USBTX, USBRX);
- DisplayBase Display;
- Canvas2D_ContextClass canvas2d;
- DigitalOut  lcd_pwon(P7_15);
- DigitalOut  lcd_blon(P8_1);
- PwmOut      lcd_cntrst(P8_15);
+InterruptIn button(USER_BUTTON0);
+Serial pc(USBTX, USBRX);
+DisplayBase Display;
+Canvas2D_ContextClass canvas2d;
+DigitalOut  lcd_pwon(P7_15);
+DigitalOut  lcd_blon(P8_1);
+PwmOut      lcd_cntrst(P8_15);
 
 #if defined(__ICCARM__)
 #pragma data_alignment=32
- uint8_t user_frame_buffer1[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT];
+uint8_t user_frame_buffer1[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT];
 #pragma data_alignment=32
- uint8_t user_frame_buffer2[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT];
+uint8_t user_frame_buffer2[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT];
 #pragma data_alignment=8
- uint8_t JpegBuffer[MAX_JPEG_SIZE]@ ".mirrorram";  //8 bytes aligned!;
+uint8_t JpegBuffer[MAX_JPEG_SIZE]@ ".mirrorram";  //8 bytes aligned!;
 #else
- uint8_t user_frame_buffer1[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT]__attribute((aligned(32)));  /* 32 bytes aligned */
- uint8_t user_frame_buffer2[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT]__attribute((aligned(32))); /* 32 bytes aligned */
- uint8_t JpegBuffer[MAX_JPEG_SIZE]__attribute((section("NC_BSS"),aligned(8)));  //8 bytes aligned!;
+uint8_t user_frame_buffer1[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT]__attribute((aligned(32)));  /* 32 bytes aligned */
+uint8_t user_frame_buffer2[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT]__attribute((aligned(32))); /* 32 bytes aligned */
+uint8_t JpegBuffer[MAX_JPEG_SIZE]__attribute((section("NC_BSS"),aligned(8)));  //8 bytes aligned!;
 #endif
- frame_buffer_t frame_buffer_info;
- volatile int32_t vsync_count = 0;
+frame_buffer_t frame_buffer_info;
+volatile int32_t vsync_count = 0;
 
 /****** LCD ******/
- void IntCallbackFunc_LoVsync(DisplayBase::int_type_t int_type) {
+void IntCallbackFunc_LoVsync(DisplayBase::int_type_t int_type) {
     /* Interrupt callback function for Vsync interruption */
     if (vsync_count > 0) {
         vsync_count--;
     }
 }
 
- void Wait_Vsync(const int32_t wait_count) {
+void Wait_Vsync(const int32_t wait_count) {
     /* Wait for the specified number of times Vsync occurs */
     vsync_count = wait_count;
     while (vsync_count > 0) {
@@ -54,7 +39,7 @@
     }
 }
 
- void Init_LCD_Display(void) {
+void Init_LCD_Display(void) {
     DisplayBase::graphics_error_t error;
     DisplayBase::lcd_config_t lcd_config;
 
@@ -88,7 +73,7 @@
     }
 }
 
- void Start_LCD_Display(uint8_t * p_buf) {
+void Start_LCD_Display(uint8_t * p_buf) {
     DisplayBase::rect_t rect;
 
     rect.vs = 0;
@@ -108,13 +93,13 @@
 
 
 
- void Update_LCD_Display(frame_buffer_t * frmbuf_info) {
+void Update_LCD_Display(frame_buffer_t * frmbuf_info) {
     Display.Graphics_Read_Change(DisplayBase::GRAPHICS_LAYER_0,
      (void *)frmbuf_info->buffer_address[frmbuf_info->draw_buffer_index]);
     Wait_Vsync(1);
 }
 
- void Swap_FrameBuffer(frame_buffer_t * frmbuf_info) {
+void Swap_FrameBuffer(frame_buffer_t * frmbuf_info) {
     if (frmbuf_info->draw_buffer_index == 1) {
         frmbuf_info->draw_buffer_index = 0;
     } else {
@@ -122,28 +107,26 @@
     }
 }
 
- void draw_image(frame_buffer_t* frmbuf_info, const graphics_image_t* image, 
- uint32_t pos_x, uint32_t pos_y) {
-    int_t dest_width;
-    int_t dest_height;
+void draw_image(frame_buffer_t* frmbuf_info, const graphics_image_t* image, 
+ uint32_t pos_x, uint32_t pos_y, int width, int height) {
 
-    Swap_FrameBuffer(frmbuf_info);
+    //Swap_FrameBuffer(frmbuf_info);
     /* Clear */
-    canvas2d.clearRect(0, 0, frmbuf_info->width, frmbuf_info->height);
+    //canvas2d.clearRect(0, 0, frmbuf_info->width, frmbuf_info->height);
     /* Draw a image */
     canvas2d.globalAlpha = 1.0f;
-    dest_width  = frmbuf_info->width;
-    dest_height = frmbuf_info->height;
-    canvas2d.drawImage((const graphics_image_t*)image,
-                        pos_x, pos_y, dest_width, dest_height);
+    canvas2d.drawImage((const graphics_image_t*)image, pos_x, pos_y, width, height);
     R_OSPL_CLEAR_ERROR();
     /* Complete drawing */
     R_GRAPHICS_Finish(canvas2d.c_LanguageContext);
     Update_LCD_Display(frmbuf_info);
 }
 
+void clear(int x, int y, int w, int h) {
+    canvas2d.clearRect(x,y,w,h);
+}
+
 void init() {
-    // may need to remove  on everything
     errnum_t err;
     Canvas2D_ContextConfigClass config;
     
@@ -180,8 +163,4 @@ void init() {
     /* Backlight on */
     Thread::wait(200);
     lcd_cntrst.write(1.0);   
-}
-
-void draw() {
-    draw_image(&frame_buffer_info,Title_File,0,0);
 }
