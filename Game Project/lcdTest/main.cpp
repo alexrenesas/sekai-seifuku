@@ -11,21 +11,20 @@ int main() {
     init();
     
     clear(0,0,480,272);       
-    draw_image(&frame_buffer_info, BG_File, 0, 0, LCD_PIXEL_WIDTH, LCD_PIXEL_HEIGHT);
-    draw_image(&frame_buffer_info, Char_File, 60, 238, OBSIZE, OBSIZE);
+    
     
     while(1) { 
-        if (cnt != 0) {
-            go();  
-        }
-        else break;  
+            go(); 
+            if (cnt < 0) cnt = 480;  
     }     
 }
 
 void go() {
-
-    draw_image(&frame_buffer_info, Obs_File, cnt, 238 , OBSIZE, OBSIZE);
-    cnt--;
+    draw_set(&frame_buffer_info, BG_File, 0, 0, LCD_PIXEL_WIDTH, LCD_PIXEL_HEIGHT);
+    draw_set(&frame_buffer_info, Char_File, 60, 238, OBSIZE, OBSIZE);
+    draw_set(&frame_buffer_info, Obs_File, cnt, 238 , OBSIZE, OBSIZE);
+    draw_fin(&frame_buffer_info);
+    cnt -= 3;
 }
     
 /* TODO list

@@ -110,9 +110,9 @@ void Swap_FrameBuffer(frame_buffer_t * frmbuf_info) {
 void draw_image(frame_buffer_t* frmbuf_info, const graphics_image_t* image, 
  uint32_t pos_x, uint32_t pos_y, int width, int height) {
 
-    //Swap_FrameBuffer(frmbuf_info);
+    Swap_FrameBuffer(frmbuf_info);
     /* Clear */
-    //canvas2d.clearRect(0, 0, frmbuf_info->width, frmbuf_info->height);
+    canvas2d.clearRect(0, 0, frmbuf_info->width, frmbuf_info->height);
     /* Draw a image */
     canvas2d.globalAlpha = 1.0f;
     canvas2d.drawImage((const graphics_image_t*)image, pos_x, pos_y, width, height);
@@ -120,6 +120,25 @@ void draw_image(frame_buffer_t* frmbuf_info, const graphics_image_t* image,
     /* Complete drawing */
     R_GRAPHICS_Finish(canvas2d.c_LanguageContext);
     Update_LCD_Display(frmbuf_info);
+}
+
+void draw_set(frame_buffer_t* frmbuf_info, const graphics_image_t* image, 
+ uint32_t pos_x, uint32_t pos_y, int width, int height) {
+
+    /* Draw a image */
+    canvas2d.globalAlpha = 1.0f;
+    canvas2d.drawImage((const graphics_image_t*)image, pos_x, pos_y, width, height);
+    R_OSPL_CLEAR_ERROR();
+}
+
+void draw_fin(frame_buffer_t* frmbuf_info) {
+
+    /* Complete drawing */
+    R_GRAPHICS_Finish(canvas2d.c_LanguageContext);
+    Update_LCD_Display(frmbuf_info);
+    Swap_FrameBuffer(frmbuf_info);
+    canvas2d.clearRect(0, 0, frmbuf_info->width, frmbuf_info->height);
+    
 }
 
 void clear(int x, int y, int w, int h) {
