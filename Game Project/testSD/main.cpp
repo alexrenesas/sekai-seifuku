@@ -4,7 +4,7 @@
 int main() {
     Serial pc(USBTX, USBRX);
     
-    pc.baud(921600); 
+    pc.baud(921600);     
     
     if (!sdInit()) {
         printf("SD card failed\n");
