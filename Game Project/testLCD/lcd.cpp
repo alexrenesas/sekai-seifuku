@@ -1,37 +1,37 @@
 #include "lcd.h"
 
 InterruptIn button(USER_BUTTON0);
-Serial pc(USBTX, USBRX);
-DisplayBase Display;
-Canvas2D_ContextClass canvas2d;
-DigitalOut  lcd_pwon(P7_15);
-DigitalOut  lcd_blon(P8_1);
-PwmOut      lcd_cntrst(P8_15);
+static Serial pc(USBTX, USBRX);
+static DisplayBase Display;
+static Canvas2D_ContextClass canvas2d;
+static DigitalOut  lcd_pwon(P7_15);
+static DigitalOut  lcd_blon(P8_1);
+static PwmOut      lcd_cntrst(P8_15);
 
 #if defined(__ICCARM__)
 #pragma data_alignment=32
-uint8_t user_frame_buffer1[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT];
+static uint8_t user_frame_buffer1[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT];
 #pragma data_alignment=32
-uint8_t user_frame_buffer2[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT];
+static uint8_t user_frame_buffer2[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT];
 #pragma data_alignment=8
-uint8_t JpegBuffer[MAX_JPEG_SIZE]@ ".mirrorram";  //8 bytes aligned!;
+static uint8_t JpegBuffer[MAX_JPEG_SIZE]@ ".mirrorram";  //8 bytes aligned!;
 #else
-uint8_t user_frame_buffer1[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT]__attribute((aligned(32)));  /* 32 bytes aligned */
-uint8_t user_frame_buffer2[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT]__attribute((aligned(32))); /* 32 bytes aligned */
-uint8_t JpegBuffer[MAX_JPEG_SIZE]__attribute((section("NC_BSS"),aligned(8)));  //8 bytes aligned!;
+static uint8_t user_frame_buffer1[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT]__attribute((aligned(32)));  /* 32 bytes aligned */
+static uint8_t user_frame_buffer2[FRAME_BUFFER_STRIDE * LCD_PIXEL_HEIGHT]__attribute((aligned(32))); /* 32 bytes aligned */
+static uint8_t JpegBuffer[MAX_JPEG_SIZE]__attribute((section("NC_BSS"),aligned(8)));  //8 bytes aligned!;
 #endif
 frame_buffer_t frame_buffer_info;
-volatile int32_t vsync_count = 0;
+static volatile int32_t vsync_count = 0;
 
 /****** LCD ******/
-void IntCallbackFunc_LoVsync(DisplayBase::int_type_t int_type) {
+static void IntCallbackFunc_LoVsync(DisplayBase::int_type_t int_type) {
     /* Interrupt callback function for Vsync interruption */
     if (vsync_count > 0) {
         vsync_count--;
     }
 }
 
-void Wait_Vsync(const int32_t wait_count) {
+static void Wait_Vsync(const int32_t wait_count) {
     /* Wait for the specified number of times Vsync occurs */
     vsync_count = wait_count;
     while (vsync_count > 0) {
@@ -39,7 +39,7 @@ void Wait_Vsync(const int32_t wait_count) {
     }
 }
 
-void Init_LCD_Display(void) {
+static void Init_LCD_Display(void) {
     DisplayBase::graphics_error_t error;
     DisplayBase::lcd_config_t lcd_config;
 
@@ -73,7 +73,7 @@ void Init_LCD_Display(void) {
     }
 }
 
-void Start_LCD_Display(uint8_t * p_buf) {
+static void Start_LCD_Display(uint8_t * p_buf) {
     DisplayBase::rect_t rect;
 
     rect.vs = 0;
@@ -93,13 +93,13 @@ void Start_LCD_Display(uint8_t * p_buf) {
 
 
 
-void Update_LCD_Display(frame_buffer_t * frmbuf_info) {
+static void Update_LCD_Display(frame_buffer_t * frmbuf_info) {
     Display.Graphics_Read_Change(DisplayBase::GRAPHICS_LAYER_0,
      (void *)frmbuf_info->buffer_address[frmbuf_info->draw_buffer_index]);
     Wait_Vsync(1);
 }
 
-void Swap_FrameBuffer(frame_buffer_t * frmbuf_info) {
+static void Swap_FrameBuffer(frame_buffer_t * frmbuf_info) {
     if (frmbuf_info->draw_buffer_index == 1) {
         frmbuf_info->draw_buffer_index = 0;
     } else {
