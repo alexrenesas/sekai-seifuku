@@ -136,21 +136,22 @@ void draw_fin(frame_buffer_t* frmbuf_info) {
     /* Complete drawing */
     R_GRAPHICS_Finish(canvas2d.c_LanguageContext);
     Update_LCD_Display(frmbuf_info);
-    Swap_FrameBuffer(frmbuf_info);
-    canvas2d.clearRect(0, 0, frmbuf_info->width, frmbuf_info->height);
+    //Swap_FrameBuffer(frmbuf_info);
+    //canvas2d.clearRect(0, 0, frmbuf_info->width, frmbuf_info->height);
     
 }
 
-void clear(int x, int y, int w, int h) {
+void clear(frame_buffer_t* frmbuf_info, int x, int y, int w, int h) {
+    Swap_FrameBuffer(frmbuf_info);
     canvas2d.clearRect(x,y,w,h);
 }
 
-void init() {
+void lcdInit() {
     errnum_t err;
     Canvas2D_ContextConfigClass config;
     
      /* Change the baud rate of the printf() */
-    pc.baud(9600);
+    pc.baud(921600);
     
     /* Initialization of LCD */
     Init_LCD_Display();    

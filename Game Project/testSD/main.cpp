@@ -1,4 +1,3 @@
-#include "mbed.h"
 #include "sd.h"
  
 int main() {
@@ -19,5 +18,7 @@ int main() {
 - Open and read a simple text file                              DONE          
 - Open and assign the image binary table file                   DONE
 - Move the contents to a separate file to call it from Main     DONE
-- Manage the buffer and available memory by reading in parts
+- Manage the buffer and available memory by reading in parts    DONE
+- Write the contents of the binary to a new file                DONE
+- Ensure that the contents are the same                         DONE
 */

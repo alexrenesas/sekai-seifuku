@@ -1,6 +1,4 @@
-#include "mbed.h"
 #include "bt.h"
-#include <stdio.h>
 
 Serial btm(P8_13, P8_11);
 Serial usb(P6_3, P6_2);

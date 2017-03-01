@@ -1,6 +1,4 @@
-#include "mbed.h"
 #include "bt.h"
-#include <stdio.h>
 
 DigitalOut myled(LED1);
 char key;
