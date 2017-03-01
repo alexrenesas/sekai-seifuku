@@ -33,7 +33,7 @@ void go() {
     
 /* TODO list
 - Bring over LCD and SD and get them to compile                 DONE
-- Get the file read from the SD to be displayed on the LCD
-- Bring over Bluetooth and get it to compile
-- Press a button, which causes the LCD to display
+- Get the file read from the SD to be displayed on the LCD      FAIL
+- Bring over Bluetooth and get it to compile                    DONE
+- Press a button, which causes the LCD to display               DONE
 */
