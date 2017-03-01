@@ -1,19 +1,24 @@
 #include "mbed.h"
+#include "bt.h"
 #include <stdio.h>
 
 Serial btm(P8_13, P8_11);
 Serial usb(P6_3, P6_2);
 
+void btInit() {
+    btm.baud(115200);
+    usb.baud(921600);
+}
+
 char input() {
-    
-    usb.baud(9600);
     if (btm.readable()) {
         return btm.getc();
     }
-    btm.baud(115200);
+    
     if (usb.readable()) {
         return usb.getc();
     }
+    return NULL;
 }
 
     
