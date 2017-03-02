@@ -2,6 +2,8 @@
 
 SDFileSystem sd(P8_5, P8_6, P8_3, P8_4, "sd");
 
+uint8_t  RGA_Sample_BinaryImage[542368]__attribute((aligned(32)));
+
 bool sdInit() {
     long lSize;
     char * buffer;

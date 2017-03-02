@@ -20,9 +20,11 @@ int main() {
     while(1) {
         key = input();
         if (key == 'g') {
-            go();
-        }
-    }
+            while(1) { 
+                go(); 
+            } 
+        }   
+    } 
 }
 
 void go() {
@@ -33,7 +35,7 @@ void go() {
     
 /* TODO list
 - Bring over LCD and SD and get them to compile                 DONE
-- Get the file read from the SD to be displayed on the LCD      FAIL
+- Get the file read from the SD to be displayed on the LCD      DONE
 - Bring over Bluetooth and get it to compile                    DONE
 - Press a button, which causes the LCD to display               DONE
 */
