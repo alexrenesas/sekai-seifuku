@@ -7,18 +7,17 @@ void go();
 int main() {
     
     lcdInit();  
-    
     while(1) { 
         go(); 
-        if (cnt < 0) cnt = 480;  
-    }     
+        if (cnt < -36) cnt = 480;  
+      }   
+        
 }
 
 void go() {
     clear(&frame_buffer_info, 0,0,480,272);
-    draw_set(&frame_buffer_info, BG_File, 0, 0, LCD_PIXEL_WIDTH, LCD_PIXEL_HEIGHT);
-    draw_set(&frame_buffer_info, Char_File, 60, 238, OBSIZE, OBSIZE);
-    draw_set(&frame_buffer_info, Obs_File, cnt, 238 , OBSIZE, OBSIZE);
+    draw_set(&frame_buffer_info, Haikei_File, 0, 0);
+    draw_set(&frame_buffer_info,Obs_File, cnt, 236);
     draw_fin(&frame_buffer_info);
     cnt -= 10;
     

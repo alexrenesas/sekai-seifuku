@@ -29,7 +29,7 @@ int main() {
 
 void go() {
     clear(&frame_buffer_info, 0,0,480,272);
-    draw_set(&frame_buffer_info, BG_File, 0, 0, LCD_PIXEL_WIDTH, LCD_PIXEL_HEIGHT);
+    draw_set(&frame_buffer_info, BG_File, 0, 0);
     draw_fin(&frame_buffer_info);
 }
     

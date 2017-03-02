@@ -91,8 +91,6 @@ static void Start_LCD_Display(uint8_t * p_buf) {
     Display.Graphics_Start(DisplayBase::GRAPHICS_LAYER_0);
 }
 
-
-
 static void Update_LCD_Display(frame_buffer_t * frmbuf_info) {
     Display.Graphics_Read_Change(DisplayBase::GRAPHICS_LAYER_0,
      (void *)frmbuf_info->buffer_address[frmbuf_info->draw_buffer_index]);
@@ -123,22 +121,17 @@ void draw_image(frame_buffer_t* frmbuf_info, const graphics_image_t* image,
 }
 
 void draw_set(frame_buffer_t* frmbuf_info, const graphics_image_t* image, 
- uint32_t pos_x, uint32_t pos_y, int width, int height) {
-
-    /* Draw a image */
+ uint32_t pos_x, uint32_t pos_y) {
+    
     canvas2d.globalAlpha = 1.0f;
-    canvas2d.drawImage((const graphics_image_t*)image, pos_x, pos_y, width, height);
-    R_OSPL_CLEAR_ERROR();
+    canvas2d.drawImage((const graphics_image_t*)image, pos_x, pos_y);
+    R_OSPL_CLEAR_ERROR(); 
 }
 
 void draw_fin(frame_buffer_t* frmbuf_info) {
-
     /* Complete drawing */
     R_GRAPHICS_Finish(canvas2d.c_LanguageContext);
-    Update_LCD_Display(frmbuf_info);
-    //Swap_FrameBuffer(frmbuf_info);
-    //canvas2d.clearRect(0, 0, frmbuf_info->width, frmbuf_info->height);
-    
+    Update_LCD_Display(frmbuf_info);    
 }
 
 void clear(frame_buffer_t* frmbuf_info, int x, int y, int w, int h) {

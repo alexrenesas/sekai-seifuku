@@ -21,7 +21,7 @@
 void lcdInit();
 void draw();
 void draw_image(frame_buffer_t* frmbuf_info, const graphics_image_t* image, uint32_t pos_x, uint32_t pos_y, int width, int height);
-void draw_set(frame_buffer_t* frmbuf_info, const graphics_image_t* image,  uint32_t pos_x, uint32_t pos_y, int width, int height);
+void draw_set(frame_buffer_t* frmbuf_info, const graphics_image_t* image,  uint32_t pos_x, uint32_t pos_y);
 void draw_fin(frame_buffer_t* frmbuf_info);
 void Swap_FrameBuffer(frame_buffer_t * frmbuf_info);
 void Update_LCD_Display(frame_buffer_t * frmbuf_info);
