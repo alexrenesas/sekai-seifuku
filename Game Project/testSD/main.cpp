@@ -1,15 +1,9 @@
-#include "mbed.h"
-#include "lcd.h"
-#include "bt.h"
 #include "sd.h"
-
-void go();
-char key;
-
+ 
 int main() {
+    Serial pc(USBTX, USBRX);
     
-    btInit();
-    lcdInit();
+    pc.baud(921600);     
     
     if (!sdInit()) {
         printf("SD card failed\n");
@@ -17,25 +11,14 @@ int main() {
     else {
         printf("SD card success!\n");
     }
-    while(1) {
-        key = input();
-        if (key == 'g') {
-            while(1) { 
-                go(); 
-            } 
-        }   
-    } 
 }
 
-void go() {
-    clear(&frame_buffer_info, 0,0,480,272);
-    draw_set(&frame_buffer_info, BG_File, 0, 0);
-    draw_fin(&frame_buffer_info);
-}
-    
 /* TODO list
-- Bring over LCD and SD and get them to compile                 DONE
-- Get the file read from the SD to be displayed on the LCD      DONE
-- Bring over Bluetooth and get it to compile                    DONE
-- Press a button, which causes the LCD to display               DONE
+- Move Audio_WAV sample over to main and get it to compile      DONE
+- Open and read a simple text file                              DONE          
+- Open and assign the image binary table file                   DONE
+- Move the contents to a separate file to call it from Main     DONE
+- Manage the buffer and available memory by reading in parts    DONE
+- Write the contents of the binary to a new file                DONE
+- Ensure that the contents are the same                         DONE
 */
