@@ -29,7 +29,7 @@
 #define  paused                         ((const graphics_image_t*)( BinaryTable + 0x0013FB80 ))
 #define  pback                          ((const graphics_image_t*)( BinaryTable + 0x00144E80 ))
 #define  player                         ((const graphics_image_t*)( BinaryTable + 0x001487A0 ))
-#define  settings                       ((const graphics_image_t*)( BinaryTable + 0x00149D00 ))
+#define  setting                       ((const graphics_image_t*)( BinaryTable + 0x00149D00 ))
 #define  titl                           ((const graphics_image_t*)( BinaryTable + 0x001662E0 ))
 
 extern uint8_t  BinaryTable[0x0018A580uL];
