@@ -121,9 +121,9 @@ void draw_image(frame_buffer_t* frmbuf_info, const graphics_image_t* image,
 }
 
 void draw_set(frame_buffer_t* frmbuf_info, const graphics_image_t* image, 
- uint32_t pos_x, uint32_t pos_y) {
+ uint32_t pos_x, uint32_t pos_y, float alpha) {
     
-    canvas2d.globalAlpha = 1.0f;
+    canvas2d.globalAlpha = alpha;
     canvas2d.drawImage((const graphics_image_t*)image, pos_x, pos_y);
     R_OSPL_CLEAR_ERROR(); 
 }
