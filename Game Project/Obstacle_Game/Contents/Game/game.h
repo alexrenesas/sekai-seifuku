@@ -7,7 +7,7 @@
 #include "sd.h"
 
 void game();
-//void nodat();
+//static void nodat();
 static void title();
 static void drawTitle();
 static void settings();
@@ -20,12 +20,15 @@ static void reset();
 static void obstacles();
 static bool goalReached();
 static void jump();
+static bool collision();
+static bool loopCheck();
 
 
 //extern bool noDataF;
 extern bool backFlag;
 extern bool goalOut;
 extern bool upFlag;
+extern bool bkTitle;
 extern char key;
 extern bool set;
 extern int times[];

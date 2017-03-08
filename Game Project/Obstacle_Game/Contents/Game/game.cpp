@@ -23,7 +23,7 @@ struct myplayer {
 } p1;
 
 spike spikes[10] = {s1,s2,s3,s4,s5,s6,s7,s8,s9,s10};
-int times[10] = {500,2000,2500,3000,4000,4500,4550,4700,5000,6000};
+int times[10] = {500,2000,2500,3000,4000,6000,7000,8700,9200,12000};
 int deteru;
 bool jumpFlag = false;
 Timer game_timer;
@@ -31,6 +31,7 @@ bool upFlag = true;
 bool backFlag = false;
 bool set = true;
 bool goalOut = false;
+bool bkTitle = true;
 char gameInput;
 int max_jump = 10;
 float gravity = 0.5;
@@ -55,7 +56,7 @@ void game() {
 }
 
 /*
-void nodat() {
+static void nodat() {
     clear(&frame_buffer_info, 0,0,480,272);
     draw_set(&frame_buffer_info, noblack,0,0);
     draw_set(&frame_buffer_info, nodata,150,110);
@@ -165,11 +166,22 @@ static void newgame() {
     reset();
     drawGame();  
     while(1) {
-        gameInput = input();
-        obstacles();
-        jump();
-        drawGame();
-        if(goalReached()) break;    
+        if (collision()) {
+            if (bkTitle) {
+                break;
+            } 
+            else {
+                wait(1.5);
+                reset();
+                drawGame();
+            }  
+        }    
+        else {
+            gameInput = input();
+            obstacles();
+            jump();
+            drawGame();
+        }   
     }
 }
 //--------------------------------------------------------------------
@@ -182,7 +194,7 @@ static void drawGame() {
         if (i==9) {
             draw_set(&frame_buffer_info,goal,spikes[i].x,220);
         } else {
-            draw_set(&frame_buffer_info,ob,spikes[i].x,236);
+            draw_set(&frame_buffer_info,ob,spikes[i].x,238);
             //printf("spike %d position: %d\n", i, spikes[i].x);   
         }
     }
@@ -202,14 +214,17 @@ static void reset() {
     jumpProg = 0;
     fallProg = 10;
     jumpFlag = false;
+    bkTitle = false;
+    gameInput = input();
+    gameInput = NULL;
     
-    printf("Game reset...\n");
+    //printf("Game reset...\n");
     
     for (int i=0; i<10; i++) {
         spikes[i].x = 480;
         spikes[i].y = 236;
-        spikes[i].w = 36;
-        spikes[i].h = 36;
+        spikes[i].w = 35;
+        spikes[i].h = 35;
         
         //printf("spike[%d] position: %d\n", j,spikes[j].x);
     }
@@ -226,6 +241,34 @@ static void reset() {
         //printf("time allotted for times[%d]: %d\n",l,deru);    
     }*/
     
+}
+
+static bool collision() {
+    //Let's examine the x axis first:
+    //If the leftmost or rightmost point of the first sprite lies somewhere inside the second, continue.
+    for (int i=0; i<deteru;i++) {
+        if( (p1.x >= spikes[i].x && p1.x <= (spikes[i].x + spikes[i].w)) ||
+          ((p1.x + p1.w) >= spikes[i].x && (p1.x + p1.w) <= (spikes[i].x + spikes[i].w)) ){
+        //Now we look at the y axis:
+            if( (p1.y >= spikes[i].y && p1.y <= (spikes[i].y + spikes[i].h)) ||
+                ((p1.y + p1.h) >= spikes[i].y && (p1.y + p1.h) <= (spikes[i].y + spikes[i].h)) ){
+            //The sprites appear to overlap.
+            if (goalOut) {
+                goalReached();
+                bkTitle = true;
+            }
+            return true;
+            }
+        }
+        else if (game_timer.read_ms() > (times[9]+700)) {
+            goalReached();
+            bkTitle = true;
+            return true;
+        }
+    } 
+    
+    //The sprites do not overlap:
+    return false;
 }
 
 static void jump() {
@@ -296,22 +339,19 @@ static void obstacles() {
 }
 
 static bool goalReached(){
-    if ((goalOut) && (game_timer.read_ms() > (times[9]+700))) {
-        clear(&frame_buffer_info, 0,0,480,272);
-        draw_set(&frame_buffer_info, black,0,0);
-        draw_set(&frame_buffer_info, goaaalll,160,60);
-        draw_set(&frame_buffer_info, pback,140,235);
-        draw_fin(&frame_buffer_info);
-        printf("Goal!\n");
+    clear(&frame_buffer_info, 0,0,480,272);
+    draw_set(&frame_buffer_info, black,0,0);
+    draw_set(&frame_buffer_info, goaaalll,160,60);
+    draw_set(&frame_buffer_info, pback,140,235);
+    draw_fin(&frame_buffer_info);
+    printf("Goal!\n");
+    
+    while(1) {
+        key = input();
+        if (key == gamepad.bck){
+            goto exit_loop;
+        }
         
-        while(1) {
-            key = input();
-            if (key == gamepad.bck){
-                goto exit_loop;
-            }
-            
-        } exit_loop:
-        return true;
-    }
-    return false;
+    } exit_loop:
+    return true;
 }
