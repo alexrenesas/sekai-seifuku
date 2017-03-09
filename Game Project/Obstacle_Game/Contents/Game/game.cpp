@@ -48,7 +48,6 @@ int jumps1[40] = {
 int jumps3[30] = {
     15,15,14,14,13,13,11,11,9,7,5,3,1,0,0,
     0,0,1,3,5,7,9,11,11,13,13,14,14,15,15
-        
 };
 
 int jumps5[20] = {
@@ -59,6 +58,7 @@ int jumps5[20] = {
 // Game flags and parameters
 int deteru;
 bool jumpFlag = false;
+bool pauseFlag = false;
 Timer game_timer;
 bool upFlag = true;
 bool backFlag = false;
@@ -69,6 +69,7 @@ int jump_time;
 int jumpDiff;
 char gameInput;
 int obSpeed;
+int d;
 
 //******************************************************************************
 
@@ -140,36 +141,36 @@ static void drawTitle() {
 }
 
 static void settings() {
-    
     upFlag = true;
+    drawSettings();
+    
     while(1) {
-        drawSettings();
-        
-        while(1) {
-            key = input();
-            if (key == gamepad.down) {
-                upFlag = false;
-            }
-            if (key == gamepad.up){
-                upFlag = true;
-            }
-            if (key == gamepad.bck){
-                backFlag = true;
-                goto exit_loop;
-            }
-            if (key == gamepad.con){
-                goto exit_loop;
-            }
-            drawSettings();
-        } exit_loop:
-        if (backFlag) { 
-            backFlag = false;
-            return; 
+        key = input();
+        if (key == gamepad.down) {
+            upFlag = false;
         }
-        if (upFlag) { difficulty(); }
-        else {controls(); }
+        if (key == gamepad.up){
+            upFlag = true;
+        }
+        if (key == gamepad.bck){
+            backFlag = true;
+            goto exit_loop;
+        }
+        if (key == gamepad.con){
+            goto exit_loop;
+        }
+        drawSettings();
+    } exit_loop:
+    if (backFlag) { 
+        backFlag = false;
+        printf("Title > ");
+        return; 
     }
+    
+    if (upFlag) { difficulty(); }
+    else {controls(); }
 }
+
 
 static void drawSettings() {
     clear(&frame_buffer_info, 0,0,480,272);
@@ -178,7 +179,7 @@ static void drawSettings() {
     draw_set(&frame_buffer_info, pback,140,235,1);
     
     if (set) {
-        draw_set(&frame_buffer_info, num_thr,317,58,1);
+        //draw_set(&frame_buffer_info, num_thr,317,58,1);
     }
     
     if(upFlag == true) {
@@ -195,8 +196,71 @@ static void difficulty() {
 }
 
 static void controls() {
-    printf("Controls\n");
+    key = NULL;
+    drawCont();
+    
+    //printf("assigning jump...\n");
+    while(1) {
+        key = input();
+        if (key != NULL) {
+            gamepad.con = key;
+            key = NULL;
+            break;
+        }
+    }
+    drawCont();
+    //printf("assigning pause...\n");
+    
+    while(1) {
+        key = input();
+        if (key != NULL) {
+            gamepad.pse = key;
+            key = NULL;
+            break;
+        }
+    }
+    drawCont();
+    //printf("assigning back...\n");
+    
+    while(1) {
+        key = input();
+        if (key != NULL) {
+            gamepad.bck = key;
+            key = NULL;
+            break;
+        }
+    }
 }
+
+static void drawCont() {
+    //printf("%d > ", d);
+    clear(&frame_buffer_info, 0,0,480,272);
+    draw_set(&frame_buffer_info, haikei,0,0,1);
+    draw_set(&frame_buffer_info, setting,120,60,1);
+    draw_set(&frame_buffer_info, pback,140,235,1);
+    draw_set(&frame_buffer_info, arrow,90,147,1);
+    
+    switch(d) {
+        case 0: 
+            draw_set(&frame_buffer_info, jumpcon,290,148,1);
+            d++;
+            break;
+        case 1: 
+            draw_set(&frame_buffer_info, pause,287,148,1);
+            d++;
+            break;
+        case 2: 
+            draw_set(&frame_buffer_info, back,285,148,1);
+            d++;
+            break;
+    }
+    
+    draw_fin(&frame_buffer_info);
+    //printf("%d\n", d);
+    
+    if (d == 3) d = 0;
+}    
+    
 //****************************** NEW GAME **************************************
 static void newgame() {
     reset();
@@ -214,6 +278,10 @@ static void newgame() {
         }    
         else {
             gameInput = input();
+            pauseFunc();
+            if (bkTitle) {
+                break;
+            } 
             obstacles();
             jump();
             drawGame();
@@ -253,6 +321,7 @@ static void reset() {
     gameInput = input();
     gameInput = NULL;
     jumpDiff = 20;
+    pauseFlag = false;
     
     //printf("Game reset...\n");
     
@@ -291,6 +360,50 @@ static bool collision() {
     } 
     return false;
 }
+
+static void pauseFunc() {
+    if (gameInput == gamepad.pse) {
+        pauseFlag = true;
+        gameInput = NULL;
+    }
+    
+    if (pauseFlag) {
+        game_timer.stop();
+        clear(&frame_buffer_info, 0,0,480,272);
+        draw_set(&frame_buffer_info, haikei,0,0,0.6);
+    
+        for(int i=0; i<deteru;i++) {
+            if (i==9) {
+                draw_set(&frame_buffer_info,goal,spikes1[i].x,220,0.6);
+            } else {
+                draw_set(&frame_buffer_info,ob,spikes1[i].x,238,0.6);
+                //printf("spike %d position: %d\n", i, spikes1[i].x);   
+            }
+        }
+        
+        draw_set(&frame_buffer_info,player,p1.x,p1.y,0.6);
+        draw_set(&frame_buffer_info,black,0,0,0.9);
+        draw_set(&frame_buffer_info,paused,170,115,0.9);
+        draw_set(&frame_buffer_info, pback,140,235,0.9);
+        draw_fin(&frame_buffer_info);
+        
+        while(1) {   
+            key = input();
+            
+            if (key == gamepad.pse){
+                pauseFlag = false;
+                goto exit_loop;
+            }
+            if (key == gamepad.bck){
+                bkTitle = true;
+                goto exit_loop;
+            }
+        } exit_loop:
+        
+        game_timer.start();
+    }       
+}
+    
 
 static void jump() {
     if (gameInput == gamepad.con) {
