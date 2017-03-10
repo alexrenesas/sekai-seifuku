@@ -45,7 +45,7 @@ int times1[10] = {
 };
 
 int times2[13] = {
-    1500,3000,3080,4000,6000,7000,7080,7700,
+    1500,3000,3090,4000,6000,7000,7090,7700,
     9000,9700,10400,11100,13000
 };
 
@@ -105,7 +105,6 @@ int detmax;
 int noObs;
 int levSel;
 int jumpSel;
-int lastNum;
 int lastTime;
 
 // Function declarations
@@ -386,7 +385,7 @@ static void drawGame() {
     draw_set(&frame_buffer_info, haikei,0,0,1);
     
     for(int i=0; i<deteru;i++) {
-        if (i==(lastNum-1)) {
+        if (i==(noObs-1)) {
             draw_set(&frame_buffer_info,goal,spikes[i].x,220,1);
         } else {
             draw_set(&frame_buffer_info,ob,spikes[i].x,238,1);
@@ -408,11 +407,14 @@ static void reset() {
     jump_time = 0;
     jumpFlag = false;
     bkTitle = false;
-    gameInput = input();
-    gameInput = NULL;
     pauseFlag = false;
     
     //printf("Game reset...\n");
+    
+    while((gameInput = input()) != NULL) {
+        gameInput = NULL;
+        
+    }
     
     //printf("gameDiff: %d\n", gameDiff);
     switch(gameDiff) {
@@ -422,8 +424,7 @@ static void reset() {
             levSel = 0;
             jumpSel = 0;
             diffSpeed = 5;
-            lastNum = 10;
-            lastTime = 1000;
+            lastTime = 1600;
             break;
         case 2:
             noObs = 13;
@@ -431,8 +432,7 @@ static void reset() {
             levSel = 1;
             jumpSel = 0;
             diffSpeed = 5;
-            lastNum = 13;
-            lastTime = 1000;
+            lastTime = 1400;
             break;
         case 3:
             noObs = 13;
@@ -440,8 +440,7 @@ static void reset() {
             levSel = 2;
             jumpSel = 1;
             diffSpeed = 6;
-            lastNum = 13;
-            lastTime = 900;
+            lastTime = 1000;
             break;
         case 4:
             noObs = 22;
@@ -449,7 +448,6 @@ static void reset() {
             levSel = 3;
             jumpSel = 1;
             diffSpeed = 8;
-            lastNum = 22;
             lastTime = 700;
             break;
         case 5:
@@ -458,7 +456,6 @@ static void reset() {
             levSel = 4;
             jumpSel = 2;
             diffSpeed = 8; 
-            lastNum = 18;
             lastTime = 700;
             break;
     }
@@ -466,14 +463,14 @@ static void reset() {
     for (int i=0; i<noObs; i++) {
         spikes[i].x = 480;
         spikes[i].y = 236;
-        spikes[i].w = 35;
-        spikes[i].h = 35;
+        spikes[i].w = 32;
+        spikes[i].h = 38;
     }
     
     p1.x = 60;
     p1.y = 238;
-    p1.w = 36;
-    p1.h = 36;    
+    p1.w = 34;
+    p1.h = 34;    
     
     
     /*
@@ -482,7 +479,7 @@ static void reset() {
     printf("levSel: %d\n", levSel);
     printf("jumpSel: %d\n", jumpSel);
     printf("diffSpeed: %d\n", diffSpeed);
-    printf("lastNum: %d\n", lastNum); */
+    printf("noObs: %d\n", noObs); */
 }
 
 static bool collision() {
@@ -498,7 +495,7 @@ static bool collision() {
             return true;
             }
         }
-        else if (game_timer.read_ms() > ((levels[levSel][lastNum-1])+lastTime)) {
+        else if (game_timer.read_ms() > ((levels[levSel][noObs-1])+lastTime)) {
             goalReached();
             bkTitle = true;
             return true;
@@ -519,7 +516,7 @@ static void pauseFunc() {
         draw_set(&frame_buffer_info, haikei,0,0,0.6);
     
         for(int i=0; i<deteru;i++) {
-            if (i==(lastNum-1)) {
+            if (i==(noObs-1)) {
                 draw_set(&frame_buffer_info,goal,spikes[i].x,220,0.6);
             } else {
                 draw_set(&frame_buffer_info,ob,spikes[i].x,238,0.6);
@@ -580,14 +577,14 @@ static void jump() {
 static void obstacles() {
     long timeCheck = game_timer.read_ms();
     
-    if(deteru != lastNum) {
+    if(deteru != noObs) {
         if (timeCheck >= levels[levSel][deteru]) {
             //printf("Next obstacle!\n");
             deteru++;
         }
     }
     
-    if (deteru == lastNum) {
+    if (deteru == noObs) {
         goalOut = true;
     }
     
