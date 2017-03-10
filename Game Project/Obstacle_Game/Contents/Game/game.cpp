@@ -22,7 +22,8 @@ const graphics_image_t* numarray[10] = {
 struct spike {
     int x,y;
     int w,h;    
-} s1,s2,s3,s4,s5,s6,s7,s8,s9,s10;
+} s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,
+  s11,s12,s13,s14,s15,s16,s17,s18;
 
 struct myplayer {
     int x;
@@ -31,13 +32,34 @@ struct myplayer {
 } p1;
 
 // spike courses, their timings, and jump levels
-spike spikes1[10] = {
-    s1,s2,s3,s4,s5,s6,s7,s8,s9,s10
+spike spikes[18] = {
+    s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,
+    s11,s12,s13,s14,s15,s16,s17,s18
 };
 
 int times1[10] = {
-    500,2000,2500,3000,4000,6000,
-    7000,8700,9200,12000
+    1500,3000,4500,6000,7000,9000,9500,10000,
+    11000,13000
+};
+
+int times2[13] = {
+    1500,3000,3100,4000,6000,7000,7100,7500,
+    9000,9500,10000,11000,13000
+};
+
+int times3[13] = {
+    1500,2000,3000,3500,4000,5000,6000,6500,7000,
+    7500,9000,10000,12000
+};
+
+int times4[10] = {
+    1500,3000,4500,6000,7000,9000,9500,10000,
+    11000, 13000
+};
+
+int times5[18] = {
+    1000,2000,2500,3000,5000,5050,5400,6000,6050,
+    6300,6350,8000,9000,9200,9400,9450,9800,11000
 };
 
 int jumps1[40] = {
@@ -55,21 +77,51 @@ int jumps5[20] = {
     0,2,6,9,12,15,17,18,19,20
 };
 
+int *levels[5] = {times1,times2,times3,times4,times5};
+int *jumpLev[3] = {jumps1, jumps3, jumps5};
+
 // Game flags and parameters
 int deteru;
+char key;
 bool jumpFlag = false;
 bool pauseFlag = false;
 Timer game_timer;
 bool upFlag = true;
 bool backFlag = false;
-bool set = true;
+bool diffFlag = false;
 bool goalOut = false;
+bool contFlag = false;
 bool bkTitle = true;
 int jump_time;
 int jumpDiff;
 char gameInput;
 int obSpeed;
 int d;
+int diffSpeed;
+int gameDiff;
+int detmax;
+int noObs;
+int levSel;
+int jumpSel;
+int lastNum;
+int lastTime;
+
+// Function declarations
+//static void nodat();
+static void title();
+static void drawTitle();
+static void settings();
+static void drawSettings();
+static void difficulty();
+static void controls();
+static void newgame();
+static void drawGame();
+static void reset();
+static void obstacles();
+static bool goalReached();
+static void jump();
+static bool collision();
+static void pauseFunc();
 
 //******************************************************************************
 
@@ -82,6 +134,8 @@ void game() {
     gamepad.lft     = 'a';
     gamepad.rgt     = 'd';
     gamepad.pse     = 'p';
+    
+    gameDiff = 3;
     
     /*
     if (noDataF) {
@@ -142,33 +196,41 @@ static void drawTitle() {
 
 static void settings() {
     upFlag = true;
+    contFlag = false;
+    diffFlag = false;
     drawSettings();
-    
     while(1) {
-        key = input();
-        if (key == gamepad.down) {
-            upFlag = false;
+        while(1) {
+            key = input();
+            if (key == gamepad.down) {
+                upFlag = false;
+            }
+            if (key == gamepad.up){
+                upFlag = true;
+            }
+            if (key == gamepad.bck){
+                backFlag = true;
+                goto exit_loop;
+            }
+            if (key == gamepad.con){
+                goto exit_loop;
+            }
+            drawSettings();
+        } exit_loop:
+        if (backFlag) { 
+            backFlag = false;
+            return; 
         }
-        if (key == gamepad.up){
-            upFlag = true;
+        
+        if (upFlag) {
+            diffFlag = true;
+            difficulty(); 
         }
-        if (key == gamepad.bck){
-            backFlag = true;
-            goto exit_loop;
+        else {
+            contFlag = true;
+            controls(); 
         }
-        if (key == gamepad.con){
-            goto exit_loop;
-        }
-        drawSettings();
-    } exit_loop:
-    if (backFlag) { 
-        backFlag = false;
-        printf("Title > ");
-        return; 
     }
-    
-    if (upFlag) { difficulty(); }
-    else {controls(); }
 }
 
 
@@ -176,11 +238,7 @@ static void drawSettings() {
     clear(&frame_buffer_info, 0,0,480,272);
     draw_set(&frame_buffer_info, haikei,0,0,1);
     draw_set(&frame_buffer_info, setting,120,60,1);
-    draw_set(&frame_buffer_info, pback,140,235,1);
-    
-    if (set) {
-        //draw_set(&frame_buffer_info, num_thr,317,58,1);
-    }
+    draw_set(&frame_buffer_info, pback,140,235,1);   
     
     if(upFlag == true) {
         draw_set(&frame_buffer_info, arrow,90,68,1);
@@ -188,16 +246,73 @@ static void drawSettings() {
     else if(upFlag == false) {
         draw_set(&frame_buffer_info, arrow,90,147,1);
     }
+    if(contFlag) {
+        switch(d) {
+            case 0: 
+                draw_set(&frame_buffer_info, jumpcon,290,148,1);
+                d++;
+                break;
+            case 1: 
+                draw_set(&frame_buffer_info, pause,287,148,1);
+                d++;
+                break;
+            case 2: 
+                draw_set(&frame_buffer_info, back,285,148,1);
+                d++;
+                break;
+        }
+        if (d == 3)d = 0;
+    }
+    
+    if(diffFlag) {
+        switch(gameDiff) {
+            case 1: 
+                draw_set(&frame_buffer_info, num_one,317,58,1);
+                break;
+            case 2: 
+                draw_set(&frame_buffer_info, num_two,317,58,1);
+                break;
+            case 3: 
+                draw_set(&frame_buffer_info, num_thr,317,58,1);
+                break;
+            case 4: 
+                draw_set(&frame_buffer_info, num_fou,317,58,1);
+                break;
+            case 5: 
+                draw_set(&frame_buffer_info, num_fiv,317,58,1);
+                break;
+        }
+    }
+    
     draw_fin(&frame_buffer_info);
 }
 
-static void difficulty() {
-    printf("Difficulty: 3\n");
+static void difficulty() {     
+    while(1) {
+        key = input();
+        
+        if (key == gamepad.lft) {
+            if (gameDiff != 1) {
+                gameDiff -= 1;
+            }
+        }
+        if (key == gamepad.rgt){
+            if (gameDiff != 5) {
+                gameDiff += 1;
+            }
+        }
+        if (key == gamepad.con){
+            goto exit_loop;
+        }
+        drawSettings();
+    } exit_loop:  
+    
+    diffFlag = false;       
 }
 
 static void controls() {
     key = NULL;
-    drawCont();
+    drawSettings();
     
     //printf("assigning jump...\n");
     while(1) {
@@ -208,7 +323,7 @@ static void controls() {
             break;
         }
     }
-    drawCont();
+    drawSettings();
     //printf("assigning pause...\n");
     
     while(1) {
@@ -219,7 +334,7 @@ static void controls() {
             break;
         }
     }
-    drawCont();
+    drawSettings();
     //printf("assigning back...\n");
     
     while(1) {
@@ -230,36 +345,10 @@ static void controls() {
             break;
         }
     }
+    
+    contFlag = false;
 }
-
-static void drawCont() {
-    //printf("%d > ", d);
-    clear(&frame_buffer_info, 0,0,480,272);
-    draw_set(&frame_buffer_info, haikei,0,0,1);
-    draw_set(&frame_buffer_info, setting,120,60,1);
-    draw_set(&frame_buffer_info, pback,140,235,1);
-    draw_set(&frame_buffer_info, arrow,90,147,1);
-    
-    switch(d) {
-        case 0: 
-            draw_set(&frame_buffer_info, jumpcon,290,148,1);
-            d++;
-            break;
-        case 1: 
-            draw_set(&frame_buffer_info, pause,287,148,1);
-            d++;
-            break;
-        case 2: 
-            draw_set(&frame_buffer_info, back,285,148,1);
-            d++;
-            break;
-    }
-    
-    draw_fin(&frame_buffer_info);
-    //printf("%d\n", d);
-    
-    if (d == 3) d = 0;
-}    
+  
     
 //****************************** NEW GAME **************************************
 static void newgame() {
@@ -295,11 +384,11 @@ static void drawGame() {
     draw_set(&frame_buffer_info, haikei,0,0,1);
     
     for(int i=0; i<deteru;i++) {
-        if (i==9) {
-            draw_set(&frame_buffer_info,goal,spikes1[i].x,220,1);
+        if (i==(lastNum-1)) {
+            draw_set(&frame_buffer_info,goal,spikes[i].x,220,1);
         } else {
-            draw_set(&frame_buffer_info,ob,spikes1[i].x,238,1);
-            //printf("spike %d position: %d\n", i, spikes1[i].x);   
+            draw_set(&frame_buffer_info,ob,spikes[i].x,238,1);
+            //printf("spike %d position: %d\n", i, spikes[i].x);   
         }
     }
     if(jumpFlag) {
@@ -320,31 +409,85 @@ static void reset() {
     bkTitle = false;
     gameInput = input();
     gameInput = NULL;
-    jumpDiff = 20;
     pauseFlag = false;
     
     //printf("Game reset...\n");
     
-    for (int i=0; i<10; i++) {
-        spikes1[i].x = 480;
-        spikes1[i].y = 236;
-        spikes1[i].w = 35;
-        spikes1[i].h = 35;
+    //printf("gameDiff: %d\n", gameDiff);
+    switch(gameDiff) {
+        case 1:
+            noObs = 10;
+            jumpDiff = 40;
+            levSel = 0;
+            jumpSel = 0;
+            diffSpeed = 5;
+            lastNum = 10;
+            lastTime = 3000;
+            break;
+        case 2:
+            noObs = 13;
+            jumpDiff = 40;
+            levSel = 1;
+            jumpSel = 0;
+            diffSpeed = 5;
+            lastNum = 13;
+            lastTime = 2000;
+            break;
+        case 3:
+            noObs = 13;
+            jumpDiff = 30;
+            levSel = 2;
+            jumpSel = 1;
+            diffSpeed = 5;
+            lastNum = 13;
+            lastTime = 1500;
+            break;
+        case 4:
+            noObs = 10;
+            jumpDiff = 30;
+            levSel = 3;
+            jumpSel = 1;
+            diffSpeed = 8;
+            lastNum = 10;
+            lastTime = 1200;
+            break;
+        case 5:
+            noObs = 18;
+            jumpDiff = 20;
+            levSel = 4;
+            jumpSel = 2;
+            diffSpeed = 8; 
+            lastNum = 18;
+            lastTime = 700;
+            break;
+    }
+    
+    for (int i=0; i<noObs; i++) {
+        spikes[i].x = 480;
+        spikes[i].y = 236;
+        spikes[i].w = 35;
+        spikes[i].h = 35;
     }
     
     p1.x = 60;
     p1.y = 238;
     p1.w = 36;
-    p1.h = 36;
-         
+    p1.h = 36;    
+    
+    /*
+    printf("noObs: %d\n", noObs);
+    printf("jumpDiff: %d\n", jumpDiff);
+    printf("levSel: %d\n", levSel);
+    printf("jumpSel: %d\n", jumpSel);
+    printf("lastNum: %d\n", lastNum); */
 }
 
 static bool collision() {
     for (int i=0; i<deteru;i++) {
-        if( (p1.x >= spikes1[i].x && p1.x <= (spikes1[i].x + spikes1[i].w)) ||
-          ((p1.x + p1.w) >= spikes1[i].x && (p1.x + p1.w) <= (spikes1[i].x + spikes1[i].w)) ){
-            if( (p1.y >= spikes1[i].y && p1.y <= (spikes1[i].y + spikes1[i].h)) ||
-                ((p1.y + p1.h) >= spikes1[i].y && (p1.y + p1.h) <= (spikes1[i].y + spikes1[i].h)) ){
+        if( (p1.x >= spikes[i].x && p1.x <= (spikes[i].x + spikes[i].w)) ||
+          ((p1.x + p1.w) >= spikes[i].x && (p1.x + p1.w) <= (spikes[i].x + spikes[i].w)) ){
+            if( (p1.y >= spikes[i].y && p1.y <= (spikes[i].y + spikes[i].h)) ||
+                ((p1.y + p1.h) >= spikes[i].y && (p1.y + p1.h) <= (spikes[i].y + spikes[i].h)) ){
             if (goalOut) {
                 goalReached();
                 bkTitle = true;
@@ -352,7 +495,7 @@ static bool collision() {
             return true;
             }
         }
-        else if (game_timer.read_ms() > (times1[9]+700)) {
+        else if (game_timer.read_ms() > ((levels[levSel][lastNum-1])+lastTime)) {
             goalReached();
             bkTitle = true;
             return true;
@@ -373,11 +516,11 @@ static void pauseFunc() {
         draw_set(&frame_buffer_info, haikei,0,0,0.6);
     
         for(int i=0; i<deteru;i++) {
-            if (i==9) {
-                draw_set(&frame_buffer_info,goal,spikes1[i].x,220,0.6);
+            if (i==(lastNum-1)) {
+                draw_set(&frame_buffer_info,goal,spikes[i].x,220,0.6);
             } else {
-                draw_set(&frame_buffer_info,ob,spikes1[i].x,238,0.6);
-                //printf("spike %d position: %d\n", i, spikes1[i].x);   
+                draw_set(&frame_buffer_info,ob,spikes[i].x,238,0.6);
+                //printf("spike %d position: %d\n", i, spikes[i].x);   
             }
         }
         
@@ -414,11 +557,11 @@ static void jump() {
     
     if (jumpFlag) {
         if (jump_time < (jumpDiff/2)) {
-            p1.y -= jumps5[jump_time];
+            p1.y -= jumpLev[jumpSel][jump_time];
             jump_time++;
         }
         else {
-            p1.y += jumps5[jump_time];
+            p1.y += jumpLev[jumpSel][jump_time];
             jump_time++;
         }
     }
@@ -434,20 +577,21 @@ static void jump() {
 static void obstacles() {
     long timeCheck = game_timer.read_ms();
     
-    if(deteru != 10) {
-        if (timeCheck >= times1[deteru]) {
+    if(deteru != lastNum) {
+        if (timeCheck >= levels[levSel][deteru]) {
             //printf("Next obstacle!\n");
             deteru++;
         }
     }
     
-    if (deteru == 10) {
+    if (deteru == (lastNum)) {
         goalOut = true;
     }
     
     for (int i=0; i < deteru; i++) {
-        if(spikes1[i].x < -39) {continue;}
-        spikes1[i].x -= 8;
+        if(spikes[i].x < -39) {continue;}
+        //spikes[i].x -= diffSpeed;        
+        spikes[i].x -= 8;
     }
 }
 
