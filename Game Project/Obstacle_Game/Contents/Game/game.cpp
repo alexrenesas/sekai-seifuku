@@ -23,7 +23,8 @@ struct spike {
     int x,y;
     int w,h;    
 } s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,
-  s11,s12,s13,s14,s15,s16,s17,s18;
+  s11,s12,s13,s14,s15,s16,s17,s18,
+  s19,s20,s21,s22;
 
 struct myplayer {
     int x;
@@ -32,19 +33,20 @@ struct myplayer {
 } p1;
 
 // spike courses, their timings, and jump levels
-spike spikes[18] = {
+spike spikes[22] = {
     s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,
-    s11,s12,s13,s14,s15,s16,s17,s18
+    s11,s12,s13,s14,s15,s16,s17,s18,
+    s19,s20,s21,s22
 };
 
 int times1[10] = {
-    1500,3000,4500,6000,7000,9000,9500,10000,
-    11000,13000
+    1500,3000,4500,6000,7000,9000,9800,10800,
+    12000,13500
 };
 
 int times2[13] = {
-    1500,3000,3100,4000,6000,7000,7100,7500,
-    9000,9500,10000,11000,13000
+    1500,3000,3080,4000,6000,7000,7080,7700,
+    9000,9700,10400,11100,13000
 };
 
 int times3[13] = {
@@ -52,14 +54,15 @@ int times3[13] = {
     7500,9000,10000,12000
 };
 
-int times4[10] = {
-    1500,3000,4500,6000,7000,9000,9500,10000,
-    11000, 13000
+int times4[22] = {
+    1000,1500,2000,3000,3500,3560,4000,4055,5000,
+    5500,6000,8000,8060,8120,8600,9000,9300,9800,
+    10500,10560,10620,12000
 };
 
 int times5[18] = {
     1000,2000,2500,3000,5000,5050,5400,6000,6050,
-    6300,6350,8000,9000,9200,9400,9450,9800,11000
+    6300,6350,8000,9000,9400,9800,10200,10250,11000
 };
 
 int jumps1[40] = {
@@ -88,7 +91,6 @@ bool pauseFlag = false;
 Timer game_timer;
 bool upFlag = true;
 bool backFlag = false;
-bool diffFlag = false;
 bool goalOut = false;
 bool contFlag = false;
 bool bkTitle = true;
@@ -197,7 +199,6 @@ static void drawTitle() {
 static void settings() {
     upFlag = true;
     contFlag = false;
-    diffFlag = false;
     drawSettings();
     while(1) {
         while(1) {
@@ -223,7 +224,6 @@ static void settings() {
         }
         
         if (upFlag) {
-            diffFlag = true;
             difficulty(); 
         }
         else {
@@ -238,7 +238,12 @@ static void drawSettings() {
     clear(&frame_buffer_info, 0,0,480,272);
     draw_set(&frame_buffer_info, haikei,0,0,1);
     draw_set(&frame_buffer_info, setting,120,60,1);
-    draw_set(&frame_buffer_info, pback,140,235,1);   
+    draw_set(&frame_buffer_info, pback,140,235,1);
+    
+    if(d == 0) {
+        draw_set(&frame_buffer_info, jumpcon,290,148,1);
+    }
+           
     
     if(upFlag == true) {
         draw_set(&frame_buffer_info, arrow,90,68,1);
@@ -264,24 +269,22 @@ static void drawSettings() {
         if (d == 3)d = 0;
     }
     
-    if(diffFlag) {
-        switch(gameDiff) {
-            case 1: 
-                draw_set(&frame_buffer_info, num_one,317,58,1);
-                break;
-            case 2: 
-                draw_set(&frame_buffer_info, num_two,317,58,1);
-                break;
-            case 3: 
-                draw_set(&frame_buffer_info, num_thr,317,58,1);
-                break;
-            case 4: 
-                draw_set(&frame_buffer_info, num_fou,317,58,1);
-                break;
-            case 5: 
-                draw_set(&frame_buffer_info, num_fiv,317,58,1);
-                break;
-        }
+    switch(gameDiff) {
+        case 1: 
+            draw_set(&frame_buffer_info, num_one,317,58,1);
+            break;
+        case 2: 
+            draw_set(&frame_buffer_info, num_two,317,58,1);
+            break;
+        case 3: 
+            draw_set(&frame_buffer_info, num_thr,317,58,1);
+            break;
+        case 4: 
+            draw_set(&frame_buffer_info, num_fou,317,58,1);
+            break;
+        case 5: 
+            draw_set(&frame_buffer_info, num_fiv,317,58,1);
+            break;
     }
     
     draw_fin(&frame_buffer_info);
@@ -305,9 +308,8 @@ static void difficulty() {
             goto exit_loop;
         }
         drawSettings();
-    } exit_loop:  
-    
-    diffFlag = false;       
+    } exit_loop: 
+    return;      
 }
 
 static void controls() {
@@ -388,7 +390,6 @@ static void drawGame() {
             draw_set(&frame_buffer_info,goal,spikes[i].x,220,1);
         } else {
             draw_set(&frame_buffer_info,ob,spikes[i].x,238,1);
-            //printf("spike %d position: %d\n", i, spikes[i].x);   
         }
     }
     if(jumpFlag) {
@@ -422,7 +423,7 @@ static void reset() {
             jumpSel = 0;
             diffSpeed = 5;
             lastNum = 10;
-            lastTime = 3000;
+            lastTime = 1000;
             break;
         case 2:
             noObs = 13;
@@ -431,25 +432,25 @@ static void reset() {
             jumpSel = 0;
             diffSpeed = 5;
             lastNum = 13;
-            lastTime = 2000;
+            lastTime = 1000;
             break;
         case 3:
             noObs = 13;
             jumpDiff = 30;
             levSel = 2;
             jumpSel = 1;
-            diffSpeed = 5;
+            diffSpeed = 6;
             lastNum = 13;
-            lastTime = 1500;
+            lastTime = 900;
             break;
         case 4:
-            noObs = 10;
+            noObs = 22;
             jumpDiff = 30;
             levSel = 3;
             jumpSel = 1;
             diffSpeed = 8;
-            lastNum = 10;
-            lastTime = 1200;
+            lastNum = 22;
+            lastTime = 700;
             break;
         case 5:
             noObs = 18;
@@ -474,11 +475,13 @@ static void reset() {
     p1.w = 36;
     p1.h = 36;    
     
+    
     /*
     printf("noObs: %d\n", noObs);
     printf("jumpDiff: %d\n", jumpDiff);
     printf("levSel: %d\n", levSel);
     printf("jumpSel: %d\n", jumpSel);
+    printf("diffSpeed: %d\n", diffSpeed);
     printf("lastNum: %d\n", lastNum); */
 }
 
@@ -584,14 +587,14 @@ static void obstacles() {
         }
     }
     
-    if (deteru == (lastNum)) {
+    if (deteru == lastNum) {
         goalOut = true;
     }
     
     for (int i=0; i < deteru; i++) {
         if(spikes[i].x < -39) {continue;}
-        //spikes[i].x -= diffSpeed;        
-        spikes[i].x -= 8;
+        spikes[i].x -= diffSpeed;
+        //printf("spike %d position: %d\n", i, spikes[i].x);   
     }
 }
 
