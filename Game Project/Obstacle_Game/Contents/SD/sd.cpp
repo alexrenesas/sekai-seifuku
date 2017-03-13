@@ -2,7 +2,7 @@
 
 SDFileSystem_GR_PEACH storage("sd");
 
-uint8_t  BinaryTable[0x0018A580uL]__attribute((aligned(32)));
+uint8_t  BinaryTable[0x0028A300uL]__attribute((aligned(32)));
 
 bool sdInit() {
     long lSize;
@@ -11,7 +11,7 @@ bool sdInit() {
     printf("Loading...\n");
     
     // open file to be read
-    FILE *fp = fopen("/sd/game.bin", "rb");
+    FILE *fp = fopen("/sd/games.bin", "rb");
     if(fp == NULL) {
         return 0;
     }

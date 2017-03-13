@@ -89,11 +89,13 @@ char key;
 bool jumpFlag = false;
 bool pauseFlag = false;
 Timer game_timer;
+Timer play_timer;
 bool upFlag = true;
 bool backFlag = false;
 bool goalOut = false;
 bool contFlag = false;
 bool bkTitle = true;
+bool diffFlag = false;
 int jump_time;
 int jumpDiff;
 char gameInput;
@@ -106,6 +108,19 @@ int noObs;
 int levSel;
 int jumpSel;
 int lastTime;
+int chckTime;
+int disp_flg;
+int curTime;
+int wk_time_sec;
+int wk_time_ms;
+bool s;
+int wk_num_s100;
+int wk_num_s10;
+int wk_num_s1;
+int wk_num_ms;
+bool deaded;
+bool hundred;
+bool ten;
 
 // Function declarations
 //static void nodat();
@@ -123,6 +138,9 @@ static bool goalReached();
 static void jump();
 static bool collision();
 static void pauseFunc();
+static void get_total_time();
+static void set_time();
+static void died();
 
 //******************************************************************************
 
@@ -223,6 +241,7 @@ static void settings() {
         }
         
         if (upFlag) {
+            diffFlag = true;
             difficulty(); 
         }
         else {
@@ -245,10 +264,20 @@ static void drawSettings() {
            
     
     if(upFlag == true) {
-        draw_set(&frame_buffer_info, arrow,90,68,1);
+        if (diffFlag) {
+            draw_set(&frame_buffer_info, yarrow,90,68,1);
+        }
+        else {
+            draw_set(&frame_buffer_info, arrow,90,68,1);
+        }
     }
     else if(upFlag == false) {
-        draw_set(&frame_buffer_info, arrow,90,147,1);
+        if (contFlag) {
+            draw_set(&frame_buffer_info, yarrow,90,147,1);
+        }
+        else {
+            draw_set(&frame_buffer_info, arrow,90,147,1);
+        }
     }
     if(contFlag) {
         switch(d) {
@@ -308,7 +337,7 @@ static void difficulty() {
         }
         drawSettings();
     } exit_loop: 
-    return;      
+    diffFlag = false;
 }
 
 static void controls() {
@@ -353,6 +382,8 @@ static void controls() {
     
 //****************************** NEW GAME **************************************
 static void newgame() {
+    play_timer.reset();
+    play_timer.start();
     reset();
     drawGame();  
     while(1) {
@@ -361,9 +392,7 @@ static void newgame() {
                 break;
             } 
             else {
-                wait(1.5);
-                reset();
-                drawGame();
+                died();
             }  
         }    
         else {
@@ -374,6 +403,7 @@ static void newgame() {
             } 
             obstacles();
             jump();
+            get_total_time();
             drawGame();
         }   
     }
@@ -382,7 +412,11 @@ static void newgame() {
 
 static void drawGame() {      
     clear(&frame_buffer_info, 0,0,480,272);
-    draw_set(&frame_buffer_info, haikei,0,0,1);
+    if(deaded) {
+        draw_set(&frame_buffer_info, dead,0,0,1);
+    } else {
+        draw_set(&frame_buffer_info, haikei,0,0,1);
+    }
     
     for(int i=0; i<deteru;i++) {
         if (i==(noObs-1)) {
@@ -395,19 +429,27 @@ static void drawGame() {
         //printf("player y pos: %f\n", p1.y);
     }
     
-    draw_set(&frame_buffer_info,player,p1.x,p1.y,1);
+    if(hundred) draw_set(&frame_buffer_info,numarray[wk_num_s100],185,60,1); 
+    if(ten) draw_set(&frame_buffer_info,numarray[wk_num_s10],202,60,1); 
+    draw_set(&frame_buffer_info,numarray[wk_num_s1],219,60,1); 
+    draw_set(&frame_buffer_info,dot,240,70,1); 
+    draw_set(&frame_buffer_info,numarray[wk_num_ms],250,60,1); 
+    if(!deaded) draw_set(&frame_buffer_info,player,p1.x,p1.y,1);
     draw_fin(&frame_buffer_info);
 }
 
 static void reset() {
     game_timer.reset();
     game_timer.start();
+    chckTime = 100;
     deteru = 0;
     goalOut = false;
     jump_time = 0;
     jumpFlag = false;
     bkTitle = false;
     pauseFlag = false;
+    ten = false;
+    hundred = false;
     
     //printf("Game reset...\n");
     
@@ -512,6 +554,7 @@ static void pauseFunc() {
     
     if (pauseFlag) {
         game_timer.stop();
+        play_timer.stop();
         clear(&frame_buffer_info, 0,0,480,272);
         draw_set(&frame_buffer_info, haikei,0,0,0.6);
     
@@ -544,6 +587,7 @@ static void pauseFunc() {
         } exit_loop:
         
         game_timer.start();
+        play_timer.start();
     }       
 }
     
@@ -600,6 +644,11 @@ static bool goalReached(){
     draw_set(&frame_buffer_info, black,0,0,1);
     draw_set(&frame_buffer_info, goaaalll,160,60,1);
     draw_set(&frame_buffer_info, pback,140,235,1);
+    if(hundred) draw_set(&frame_buffer_info,numarray[wk_num_s100],180,175,1); 
+    if(ten) draw_set(&frame_buffer_info,numarray[wk_num_s10],197,175,1); 
+    draw_set(&frame_buffer_info,numarray[wk_num_s1],214,175,1); 
+    draw_set(&frame_buffer_info,dot,235,185,1); 
+    draw_set(&frame_buffer_info,numarray[wk_num_ms],245,175,1);
     draw_fin(&frame_buffer_info);
     printf("Goal!\n");
     
@@ -610,5 +659,56 @@ static bool goalReached(){
         }
         
     } exit_loop:
+    play_timer.reset();
     return true;
+}
+
+static void set_time() {
+    if(s) {
+        wk_num_s100 = (wk_time_sec / 100) % 10;
+        if (wk_num_s100 != 0) hundred = true;
+        wk_num_s10 = (wk_time_sec / 10) % 10;
+        if (wk_num_s10 != 0) ten = true;
+        wk_num_s1 = wk_time_sec % 10;
+    } 
+    else {     
+        wk_num_ms = (wk_time_ms / 100) % 10;
+    }
+}
+
+static void get_total_time() {
+    if (play_timer.read_ms() < chckTime) {
+        return;
+    }
+    curTime = play_timer.read_ms();
+    
+    wk_time_sec = curTime / 1000;
+    wk_time_ms  = curTime % 1000;   
+
+    if (wk_time_sec > 999) {
+        wk_time_sec = 999;
+        //wk_time_ms = 999;
+    }
+    s = true;
+    set_time();
+    s = false;
+    set_time();
+    chckTime += 100;
+}
+
+static void died() {
+    play_timer.stop();
+    deaded = true;
+    
+    for (float i=0;i<1;i+=0.2) {
+        clear(&frame_buffer_info, 0,0,480,272);
+        draw_set(&frame_buffer_info, white,0,0,i);
+        draw_fin(&frame_buffer_info);
+    }
+        
+    drawGame();
+    wait(1.3);
+    deaded = false;
+    play_timer.start();
+    reset();
 }
