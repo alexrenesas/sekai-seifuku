@@ -121,9 +121,12 @@ int wk_num_ms;
 bool deaded;
 bool hundred;
 bool ten;
+bool jumpDone;
+float angle;
+float angleUp;
 
 // Function declarations
-//static void nodat();
+static void nodat();
 static void title();
 static void drawTitle();
 static void settings();
@@ -156,23 +159,26 @@ void game() {
     
     gameDiff = 3;
     
-    /*
+    
     if (noDataF) {
         nodat();
     }
     else {title();}
-    */
+    
     title();
 }
 
-/*
+
 static void nodat() {
     clear(&frame_buffer_info, 0,0,480,272);
     draw_set(&frame_buffer_info, noblack,0,0,1);
     draw_set(&frame_buffer_info, nodata,150,110,1);
     draw_fin(&frame_buffer_info);
+    while(1) {
+        ;
+    }
 }
-*/
+
 
 static void title() {
     while(1) {
@@ -412,12 +418,15 @@ static void newgame() {
 
 static void drawGame() {      
     clear(&frame_buffer_info, 0,0,480,272);
+    
+    // red background or normal
     if(deaded) {
         draw_set(&frame_buffer_info, dead,0,0,1);
     } else {
         draw_set(&frame_buffer_info, haikei,0,0,1);
     }
     
+    // draw location for each obstacle
     for(int i=0; i<deteru;i++) {
         if (i==(noObs-1)) {
             draw_set(&frame_buffer_info,goal,spikes[i].x,220,1);
@@ -425,16 +434,32 @@ static void drawGame() {
             draw_set(&frame_buffer_info,ob,spikes[i].x,238,1);
         }
     }
-    if(jumpFlag) {
-        //printf("player y pos: %f\n", p1.y);
-    }
     
+    // draw the timer
     if(hundred) draw_set(&frame_buffer_info,numarray[wk_num_s100],185,60,1); 
     if(ten) draw_set(&frame_buffer_info,numarray[wk_num_s10],202,60,1); 
     draw_set(&frame_buffer_info,numarray[wk_num_s1],219,60,1); 
     draw_set(&frame_buffer_info,dot,240,70,1); 
     draw_set(&frame_buffer_info,numarray[wk_num_ms],250,60,1); 
-    if(!deaded) draw_set(&frame_buffer_info,player,p1.x,p1.y,1);
+    
+    // check for death, and if alive, rotate on a jump
+    if(!deaded) {
+        if(jumpFlag) {
+            angle += angleUp;
+            //printf("angle: %f\n", angle);
+            
+            rotate(&frame_buffer_info,player,p1.x,p1.y,angle);
+            
+            if (jumpDone) {
+                angle = 0;
+                angle += (angleUp*2);
+                jumpDone = false;
+            }           
+        }
+        else {
+            draw_set(&frame_buffer_info,player,p1.x,p1.y,1);
+        }
+    }
     draw_fin(&frame_buffer_info);
 }
 
@@ -450,6 +475,8 @@ static void reset() {
     pauseFlag = false;
     ten = false;
     hundred = false;
+    jumpDone = false;
+    angle = 0;
     
     //printf("Game reset...\n");
     
@@ -466,7 +493,9 @@ static void reset() {
             levSel = 0;
             jumpSel = 0;
             diffSpeed = 5;
-            lastTime = 1600;
+            lastTime = 1100;
+            angleUp = 4.5;
+            angle += angleUp;
             break;
         case 2:
             noObs = 13;
@@ -474,7 +503,9 @@ static void reset() {
             levSel = 1;
             jumpSel = 0;
             diffSpeed = 5;
-            lastTime = 1400;
+            lastTime = 1100;
+            angleUp = 4.5;
+            angle += angleUp;
             break;
         case 3:
             noObs = 13;
@@ -483,6 +514,8 @@ static void reset() {
             jumpSel = 1;
             diffSpeed = 6;
             lastTime = 1000;
+            angleUp = 6;
+            angle += angleUp;
             break;
         case 4:
             noObs = 22;
@@ -490,7 +523,9 @@ static void reset() {
             levSel = 3;
             jumpSel = 1;
             diffSpeed = 8;
-            lastTime = 700;
+            lastTime = 900;
+            angleUp = 6;
+            angle += angleUp;
             break;
         case 5:
             noObs = 18;
@@ -499,6 +534,8 @@ static void reset() {
             jumpSel = 2;
             diffSpeed = 8; 
             lastTime = 700;
+            angleUp = 9;
+            angle += angleUp;
             break;
     }
     
@@ -614,6 +651,7 @@ static void jump() {
         //printf("jump was reset\n");
         jumpFlag = false;
         jump_time = 0;
+        jumpDone = true;
     }
 }
         
@@ -699,6 +737,7 @@ static void get_total_time() {
 static void died() {
     play_timer.stop();
     deaded = true;
+    //wait(1);
     
     for (float i=0;i<1;i+=0.2) {
         clear(&frame_buffer_info, 0,0,480,272);

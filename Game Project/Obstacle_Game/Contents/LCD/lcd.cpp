@@ -139,6 +139,21 @@ void clear(frame_buffer_t* frmbuf_info, int x, int y, int w, int h) {
     canvas2d.clearRect(x,y,w,h);
 }
 
+void rotate(frame_buffer_t* frmbuf_info, const graphics_image_t* image, 
+    int x, int y, int angle) {
+
+    /* Move to drawing position */
+    canvas2d.translate((x + (36 / 2)), (y + (36 / 2)));
+
+    /* Rotate */
+    canvas2d.rotate(angle * (3.14159 / 180));
+
+    /* Move to center to rotate */
+    canvas2d.translate((-36 / 2), (-36 / 2));
+    canvas2d.drawImage(image, 0, 0);
+    canvas2d.setTransform(1, 0, 0, 1, 0, 0);
+}
+
 void lcdInit() {
     errnum_t err;
     Canvas2D_ContextConfigClass config;

@@ -5,7 +5,7 @@
 #include "DisplayBace.h"
 #include "rtos.h"
 #include "RGA.h"
-//#include "BinaryImage_RZ_A1H.h"
+#include "BinaryImage_RZ_A1H.h"
 #include "LCD_shield_config_4_3inch.h"
 
 #define GRAPHICS_FORMAT                     (DisplayBase::GRAPHICS_FORMAT_RGB565)
@@ -31,6 +31,9 @@ void draw_image(frame_buffer_t* frmbuf_info, const graphics_image_t* image,
     
 void draw_set(frame_buffer_t* frmbuf_info, const graphics_image_t* image,
     uint32_t pos_x, uint32_t pos_y, float alpha);
+    
+void rotate(frame_buffer_t* frmbuf_info, const graphics_image_t* image, 
+    int x, int y, int angle);
  
 extern frame_buffer_t frame_buffer_info;
 

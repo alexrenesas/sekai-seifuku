@@ -8,6 +8,6 @@
 
 void game();
 
-//extern bool noDataF;
+extern bool noDataF;
 
 #endif
