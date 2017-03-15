@@ -349,12 +349,14 @@ static void difficulty() {
 static void controls() {
     key = NULL;
     drawSettings();
+    char jumpy, pausey;
     
     //printf("assigning jump...\n");
     while(1) {
         key = input();
         if (key != NULL) {
             gamepad.con = key;
+            jumpy = key;
             key = NULL;
             break;
         }
@@ -364,8 +366,9 @@ static void controls() {
     
     while(1) {
         key = input();
-        if (key != NULL) {
+        if ((key != NULL) && (key != jumpy)) {
             gamepad.pse = key;
+            pausey = key;
             key = NULL;
             break;
         }
@@ -375,7 +378,7 @@ static void controls() {
     
     while(1) {
         key = input();
-        if (key != NULL) {
+        if ((key != NULL) && (key != pausey) && (key != jumpy)) {
             gamepad.bck = key;
             key = NULL;
             break;
