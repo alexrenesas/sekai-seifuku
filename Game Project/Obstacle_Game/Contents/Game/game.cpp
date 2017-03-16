@@ -709,7 +709,7 @@ static void set_time() {
         wk_num_s100 = (wk_time_sec / 100) % 10;
         if (wk_num_s100 != 0) hundred = true;
         wk_num_s10 = (wk_time_sec / 10) % 10;
-        if (wk_num_s10 != 0) ten = true;
+        if ((wk_num_s10 != 0)||(hundred)) ten = true;
         wk_num_s1 = wk_time_sec % 10;
     } 
     else {     
